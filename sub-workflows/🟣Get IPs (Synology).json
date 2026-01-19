@@ -1,0 +1,87 @@
+{
+  "name": "🟣Get IPs (Synology)",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "061c4c11-e429-4fea-995f-0f5a94e33eb7",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"ip addr show\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -832,\n        -336\n      ],\n      \"id\": \"e4c8bfa9-8169-46dd-9b40-ae99de0eed1f\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {},\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "33fcaa41-42aa-477a-bfcd-4250b7f79e08",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst lines = $json.stdout.split('\\n');\n\nconst ignoreIfaces = ['lo', 'docker', 'br-', 'veth', 'wg', 'tailscale'];\n\nconst ips = [];\n\nlet currentIface = null;\n\nfor (const line of lines) {\n  // Detect interface lines\n  const ifaceMatch = line.match(/^\\d+:\\s+([\\w@.]+):/);\n  if (ifaceMatch) {\n    currentIface = ifaceMatch[1].split('@')[0]; // remove @ifname suffix\n    continue;\n  }\n\n  // Skip ignored interfaces\n  if (!currentIface || ignoreIfaces.some(p => currentIface.startsWith(p))) continue;\n\n  // Detect IPv4 addresses\n  const ipMatch = line.match(/\\s+inet\\s+([\\d.]+)\\/\\d+/);\n  if (ipMatch) {\n    ips.push({\n      interface: currentIface,\n      ip: ipMatch[1]\n    });\n  }\n}\n\nconst ipString = ips.map(i => `${i.interface}: ${i.ip}`).join(', ');\n\nreturn [{\n  ip_addresses: ipString\n}];\n\n/**\nreturn [\n  {\n    ips\n  }\n];\n*/"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "b06a665e-8c47-406c-8dd7-e9618f656b8f",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "89c64a95-75fa-4609-8178-4f3cd768faf6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "TXNreqF8UlAjIzjs",
+  "tags": []
+}

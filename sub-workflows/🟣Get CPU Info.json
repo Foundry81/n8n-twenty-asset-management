@@ -1,0 +1,87 @@
+{
+  "name": "🟣Get CPU Info",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "d27056c0-38a9-43d8-9e28-db1f0d44e738",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"lscpu -J\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -336,\n        -272\n      ],\n      \"id\": \"b98b09d3-34a3-4c13-987a-849777c9a00a\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Execute a command\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "bc59b49c-9685-4eb6-9ff9-a44fc71178bc",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "let parsed;\n\ntry {\n  parsed = JSON.parse($json.stdout);\n} catch (e) {\n  throw new Error('Failed to parse lscpu JSON');\n}\n\nconst cpu = {};\nfor (const item of parsed.lscpu) {\n  const key = item.field.replace(':', '').trim();\n  cpu[key] = item.data;\n}\n\nreturn [{\n  cpu_model: cpu['Model name'],\n  cpu_cores: Number(cpu['CPU(s)']),\n  architecture: cpu['Architecture'],\n  clock_speed: Number(cpu['CPU max MHz'])\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "8fde41d6-22f0-4540-a29d-b7cdc0f4aa38",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1fa37b8a-4983-4657-8e93-34ace599d928",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "LTSfvZPDydNYjleX",
+  "tags": []
+}

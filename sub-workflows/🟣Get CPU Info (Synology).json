@@ -1,0 +1,327 @@
+{
+  "name": "🟣Get CPU Info (Synology)",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        -176
+      ],
+      "id": "93c838a6-65e9-4226-88ae-49789c0a28ce",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"cat /proc/cpuinfo\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -1056,\n        -496\n      ],\n      \"id\": \"ef393fd7-e504-40cb-b580-a0e551a4aa74\",\n      \"name\": \"CPU Name\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"CPU Name\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -464
+      ],
+      "id": "3421050a-bbaa-43a4-9f1f-da88ffd81b0f",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst lines = $json.stdout.split('\\n');\n\nlet cpuModel = null;\n\nfor (const line of lines) {\n  if (line.toLowerCase().startsWith('model name')) {\n    cpuModel = line.split(':')[1].trim();\n    break;\n  }\n}\n\nif (!cpuModel) {\n  cpuModel = 'Unknown CPU';\n}\n\nreturn [\n  {\n    cpu_model: cpuModel\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -464
+      ],
+      "id": "62f813c0-45b7-4a48-a5f7-d0be8211cd5f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nreturn [\n  {\n    cpu_cores: $json.stdout\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -272
+      ],
+      "id": "22633a82-4f8c-4513-8d93-d64966fc37b6",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst modelLine = $json.stdout.trim();\n\n// Match \"@ 2.00GHz\", \"@2.4 GHz\", etc.\nconst match = modelLine.match(/@\\s*([\\d.]+)\\s*GHz/i);\n\nlet clockSpeed;\n\nif (match && match[1]) {\n  // Parse numeric and format to one decimal place\n  clockSpeed = parseFloat(match[1]).toFixed(1);\n} else {\n  clockSpeed = null; // or 0 if you prefer\n}\n\nreturn [\n  {\n    clock_speed: clockSpeed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -80
+      ],
+      "id": "eba24d3d-8560-4451-a164-c04d2b49f390",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst rawArch = $json.stdout.trim().toLowerCase();\n\nlet architecture;\n\nif (rawArch === 'x86_64' || rawArch === 'amd64') {\n  architecture = 'x86_64';\n} else if (rawArch === 'aarch64' || rawArch === 'arm64') {\n  architecture = 'arm64';\n} else if (rawArch.startsWith('arm')) {\n  architecture = 'arm32';\n} else {\n  architecture = rawArch; // fallback, better than losing data\n}\n\nreturn [\n  {\n    architecture\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        112
+      ],
+      "id": "2af3155a-a189-4c84-a6d9-d93873ae7c9a",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        -368
+      ],
+      "id": "a1e0efdb-2332-4e28-852d-fa08cf4edaf8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -128,
+        16
+      ],
+      "id": "e2caf085-f2f6-4206-8d05-858011f808e0",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        96,
+        -176
+      ],
+      "id": "119fa484-bf1f-4cd9-ba15-37d6dcffc11c",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"awk '/cpu cores/ {print $4; exit}' /proc/cpuinfo\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -1056,\n        -320\n      ],\n      \"id\": \"e0984da2-cd25-40bc-9acd-61d98fe0117a\",\n      \"name\": \"CPU Cores\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"CPU Cores\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -272
+      ],
+      "id": "324ad7ca-d760-46e0-97bc-b2f5298e7dcc",
+      "name": "SSH call1"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"awk -F: '/model name/ {print $2; exit}' /proc/cpuinfo\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -1040,\n        -144\n      ],\n      \"id\": \"311a422a-cec2-4a1a-962a-dbeb5c6a1bca\",\n      \"name\": \"CPU Clock Speed\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"CPU Clock Speed\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -80
+      ],
+      "id": "0c709b42-cadd-4d0b-96b2-025007f27007",
+      "name": "SSH call2"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"uname -m\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -1056,\n        32\n      ],\n      \"id\": \"24688cf6-e1db-4d82-aea7-417e69e2e0ee\",\n      \"name\": \"CPU Architecture\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"jlZ7BL55TogkqMVF\",\n          \"name\": \"Synology001\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"CPU Architecture\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        112
+      ],
+      "id": "d082f7ed-1608-4294-8289-748eed9d9947",
+      "name": "SSH call3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SSH call1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SSH call2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SSH call3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SSH call3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e31f8653-0b7e-4ea5-b2e6-2a450291993f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "9v5CM8k5hq6bCiEY",
+  "tags": []
+}

@@ -1,0 +1,107 @@
+{
+  "name": "🟣Get Memory",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "c315f7e2-fe30-4c58-9eb2-8d1c25bc7a2f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"awk '/MemTotal/ {print $2}' /proc/meminfo\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -640,\n        -320\n      ],\n      \"id\": \"457d5eb2-ed98-4808-8009-3ea1ee394044\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {},\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "9e1436bd-a32f-4800-8cb8-ca666eec4ee6",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "const kib = Number($json.stdout);\n\n// Convert to bytes, then to decimal GB\nconst gb = kib * 1024 / 1_000_000_000;\n\n// Round to nearest common retail size\n// This assumes you care about powers of two style SKUs\nconst commonSizes = [4, 8, 16, 32, 64, 128, 256, 512];\n\nconst rounded = commonSizes.reduce((prev, curr) =>\n  Math.abs(curr - gb) < Math.abs(prev - gb) ? curr : prev\n);\n\nreturn [{\n  ram_gb: rounded + \"GB.\"\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "33174396-4d14-40c2-84c1-e83e82f2a8fe",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "awk '/MemTotal/ {print $2}' /proc/meminfo"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        -320
+      ],
+      "id": "457d5eb2-ed98-4808-8009-3ea1ee394044",
+      "name": "Execute a command",
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "API account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c74ddb70-323d-4041-8b8b-00365933fea1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "zAbI7VCRaFOCBbfD",
+  "tags": []
+}

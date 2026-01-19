@@ -1,0 +1,87 @@
+{
+  "name": "🟣Get Storage",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "6a479067-edc3-4584-9850-61b6fc5aff95",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"lsblk -b -J -o NAME,SIZE,TYPE,MOUNTPOINT\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -832,\n        -336\n      ],\n      \"id\": \"e4c8bfa9-8169-46dd-9b40-ae99de0eed1f\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {},\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "519d133f-9259-4af7-b78e-b6c1508c591f",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = JSON.parse($json.stdout);\nconst disks = parsed.blockdevices.filter(d => d.type === 'disk');\nconst totalBytes = disks.reduce((sum, d) => sum + Number(d.size), 0);\n\nreturn [{\n  storage_gb: Math.round(totalBytes / 1024 / 1024 / 1024) + \"GB.\"\n}];\n\n/**\n * Full info in an array\n **\nlet parsed;\n\ntry {\n  parsed = JSON.parse($json.stdout);\n} catch (e) {\n  throw new Error('Failed to parse lsblk JSON');\n}\n\nconst drives = parsed.blockdevices\n  .filter(d => d.type === 'disk')\n  .map(d => ({\n    drive: d.name,\n    size_gb: Math.round(Number(d.size) / 1_000_000_000),\n    model: d.model || null,\n    serial: d.serial || null\n  }));\n\nreturn [{\n  drives\n}];\n\n*/"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "542f9831-0580-41ae-b9a5-b35824739578",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fdda50c7-9ec0-45f9-a672-95cde1598029",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "9bKb1YjwnLe2PZ9w",
+  "tags": []
+}

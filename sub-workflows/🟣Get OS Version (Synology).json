@@ -1,0 +1,87 @@
+{
+  "name": "🟣Get OS Version (Synology)",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "ba5a41da-0e6a-4cac-bbfa-e2be24510502",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"cat /etc.defaults/VERSION\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -704,\n        -384\n      ],\n      \"id\": \"a147b102-f423-44fe-a4bc-fb80e63b0f05\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Execute a command\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "55cce56a-9494-47e5-a53f-abdd5c89d5d9",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst lines = $json.stdout.split('\\n');\n\nconst os = {};\n\nfor (const line of lines) {\n  const match = line.match(/^(\\w+)=\"?(.*?)\"?$/);\n  if (match) {\n    os[match[1]] = match[2];\n  }\n}\n\nconst osName = 'Synology DSM';\nconst osVersion = os.productversion || `${os.majorversion}.${os.minorversion}`;\n\nreturn [\n  {\n    os_name: osName,\n    os_version: osVersion\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -48
+      ],
+      "id": "b9cea280-c860-4e8b-abe8-ba0752e6af52",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8e71d659-85ab-4a0b-8acd-698abb863293",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "oGIb85F5CgrJ0PIh",
+  "tags": []
+}

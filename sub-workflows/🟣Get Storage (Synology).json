@@ -1,0 +1,100 @@
+{
+  "name": "🟣Get Storage (Synology)",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "credential"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        -48
+      ],
+      "id": "818bb2ce-2c47-426f-88e9-2d815f7bf172",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.credential }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"cat /proc/partitions\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -832,\n        -336\n      ],\n      \"id\": \"e4c8bfa9-8169-46dd-9b40-ae99de0eed1f\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {},\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "c3794120-adf8-4c03-97ff-ed82e3297544",
+      "name": "SSH call"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\n// Split lines and skip header\nconst lines = $json.stdout.trim().split('\\n').slice(2);\n\nlet totalBytes = 0;\n\nfor (const line of lines) {\n  const parts = line.trim().split(/\\s+/);\n  const [major, minor, blocks, name] = parts;\n\n  // Only top-level disks (exclude partitions like sda1, sdb2)\n  if (!name.match(/^[a-z]+$/)) continue;\n\n  totalBytes += parseInt(blocks, 10) * 1024; // blocks are in KB\n}\n\n// Convert to GB\nconst totalGB = Math.round(totalBytes / 1_000_000_000);\n\n// Convert to TB if >1000 GB\nconst totalTB = totalGB >= 1000 ? +(totalGB / 1024).toFixed(1) : null;\n\nreturn [\n  {\n    storage_gb: totalGB + \"GB.\"\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        -48
+      ],
+      "id": "4783f05d-8722-414b-8c19-56770d661c35",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// this is just going to chill here until i get to more advanced storage records in Twenty (json object probably)\nif (!$json.stdout) {\n  throw new Error('No stdout found from SSH node');\n}\n\nconst lines = $json.stdout.trim().split('\\n').slice(2); // skip header\n\nconst disks = [];\n\nfor (const line of lines) {\n  const parts = line.trim().split(/\\s+/);\n  const [major, minor, blocks, name] = parts;\n\n  // Only include top-level disks (exclude partitions like sda1, sdb2)\n  if (!name.match(/^\\D+/)) continue; // ensures name starts with letters like sda\n\n  const sizeGB = Math.round((parseInt(blocks, 10) * 1024) / 1_000_000_000);\n  const sizeTB = sizeGB >= 1000 ? +(sizeGB / 1024).toFixed(1) : null;\n\n  disks.push({\n    device: name,\n    size_gb: sizeGB,\n    size_tb: sizeTB\n  });\n}\n/**\nreturn [\n  {\n    disks\n  }\n];\n*/\n\nconst diskString = disks.map(d => `${d.device}: ${d.size_tb ?? d.size_gb + 'GB'}`).join(', ');\n\nreturn [{\n  storage_devices: diskString\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -304
+      ],
+      "id": "d31b7b24-9b21-4881-9467-0e812eac0214",
+      "name": "Next revisions"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "SSH call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH call": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fc5b6aa3-eec5-4479-887b-b0170b60ffda",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "h23KkEnWWoJGCZhe",
+  "tags": []
+}

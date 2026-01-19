@@ -1,0 +1,530 @@
+{
+  "name": "🟢Get System Info (Synology)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/assetinfo/synology",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1792,
+        -96
+      ],
+      "id": "830b8281-4dc6-4bc4-a04a-3baf1d55e91c",
+      "name": "Webhook",
+      "webhookId": "bdd75856-916f-4e31-b855-ce7da31f103a"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://TWENTY_INSTANCE/rest/itAssets/{{ $('Webhook').item.json.body.asset_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"cpuModel\": {{ JSON.stringify($json.cpu_model) }},\n  \"cpuCores\": {{ $json.cpu_cores }},\n  \"cpuArchitecture\": {{ JSON.stringify($json.architecture) }},\n  \"clockSpeed\": {{ $json.clock_speed }},\n  \"memory\": {{ JSON.stringify($json.ram_gb) }},\n  \"os\": {{ JSON.stringify($json.os_name) }},\n  \"osVersion\": {{ JSON.stringify($json.os_version) }},\n  \"storage\": {{ JSON.stringify($json.storage_gb) }},\n  \"ipAddresses\": {{ JSON.stringify($json.ip_addresses) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -448,
+        -96
+      ],
+      "id": "c5a47fe2-91d7-4dda-8256-2fcbcf7ad70c",
+      "name": "Update IT Asset",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "API account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# System Info\n## Synology NAS\n\n- CPU info\n- Memory details\n- OS information\n- Total storage\n- IP addresses",
+        "height": 288,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1952,
+        -448
+      ],
+      "typeVersion": 1,
+      "id": "6cd1427a-e9b9-40f1-b7fc-1ca4eec379b4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fdb72d15-c553-48f2-b4e1-515611593590",
+              "leftValue": "={{ $json.body.credential_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1568,
+        -96
+      ],
+      "id": "b6f8644b-b2a1-4841-9ddb-fa1684f5df9f",
+      "name": "Credential exists?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "9v5CM8k5hq6bCiEY",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9v5CM8k5hq6bCiEY",
+          "cachedResultName": "🟣Get CPU Info (Synology)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "credential": "={{ $json.body.credential_id }}"
+          },
+          "matchingColumns": [
+            "credential"
+          ],
+          "schema": [
+            {
+              "id": "credential",
+              "displayName": "credential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        -448
+      ],
+      "id": "a16aadf0-040b-4b79-bd5e-9b58a8314b85",
+      "name": "Get CPU info"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "zAbI7VCRaFOCBbfD",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/zAbI7VCRaFOCBbfD",
+          "cachedResultName": "🟣Get Memory"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "credential": "={{ $json.body.credential_id }}"
+          },
+          "matchingColumns": [
+            "credential"
+          ],
+          "schema": [
+            {
+              "id": "credential",
+              "displayName": "credential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        -256
+      ],
+      "id": "e3b053c3-219d-4b38-a452-62f6e7721798",
+      "name": "Get memory details"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "oGIb85F5CgrJ0PIh",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/oGIb85F5CgrJ0PIh",
+          "cachedResultName": "🟣Get OS Version (Synology)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "credential": "={{ $json.body.credential_id }}"
+          },
+          "matchingColumns": [
+            "credential"
+          ],
+          "schema": [
+            {
+              "id": "credential",
+              "displayName": "credential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1120,
+        -96
+      ],
+      "id": "9cdf9e95-465e-4e6e-816a-731da71c4edb",
+      "name": "Get OS info"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "h23KkEnWWoJGCZhe",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/h23KkEnWWoJGCZhe",
+          "cachedResultName": "🟣Get Storage (Synology)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "credential": "={{ $json.body.credential_id }}"
+          },
+          "matchingColumns": [
+            "credential"
+          ],
+          "schema": [
+            {
+              "id": "credential",
+              "displayName": "credential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        80
+      ],
+      "id": "a47b43ed-2052-4e79-9ac7-ea472c0b65fe",
+      "name": "Get storage details"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "TXNreqF8UlAjIzjs",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/TXNreqF8UlAjIzjs",
+          "cachedResultName": "🟣Get IPs (Synology)"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "credential": "={{ $json.body.credential_id }}"
+          },
+          "matchingColumns": [
+            "credential"
+          ],
+          "schema": [
+            {
+              "id": "credential",
+              "displayName": "credential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        272
+      ],
+      "id": "7e0ec5a7-dd76-4059-b789-ae040af71576",
+      "name": "Get IPs"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1120,
+        -352
+      ],
+      "id": "3189f5da-b76c-457a-aa8d-6f3d30e318e0",
+      "name": "CPU + memory merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1120,
+        176
+      ],
+      "id": "42ac48f1-e240-4960-89ea-505e03ebad86",
+      "name": "Storage + IP merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -672,
+        -96
+      ],
+      "id": "33ed6921-d2b7-45b1-bd02-2e3f579a397a",
+      "name": "Final Merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -896,
+        -256
+      ],
+      "id": "3692654a-12a9-4662-a48c-98c849553904",
+      "name": "Merge-a-tron 3000"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Credential exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update IT Asset": {
+      "main": [
+        []
+      ]
+    },
+    "Credential exists?": {
+      "main": [
+        [
+          {
+            "node": "Get CPU info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get memory details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get OS info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get storage details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get IPs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Get CPU info": {
+      "main": [
+        [
+          {
+            "node": "CPU + memory merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get memory details": {
+      "main": [
+        [
+          {
+            "node": "CPU + memory merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get OS info": {
+      "main": [
+        [
+          {
+            "node": "Merge-a-tron 3000",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get storage details": {
+      "main": [
+        [
+          {
+            "node": "Storage + IP merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get IPs": {
+      "main": [
+        [
+          {
+            "node": "Storage + IP merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "CPU + memory merge": {
+      "main": [
+        [
+          {
+            "node": "Merge-a-tron 3000",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Storage + IP merge": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final Merge": {
+      "main": [
+        [
+          {
+            "node": "Update IT Asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge-a-tron 3000": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0d48657a-8c7d-4fd2-97b9-9262f2973058",
+  "meta": {
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "gRErGS6r1lscEjLw",
+  "tags": []
+}

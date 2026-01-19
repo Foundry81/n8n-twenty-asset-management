@@ -1,0 +1,556 @@
+{
+  "name": "🟢Get System Info (TrueNAS)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/assetinfo/truenas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2192,
+        992
+      ],
+      "id": "5def10aa-ec1f-4d5d-b96c-1b08c7187962",
+      "name": "Webhook",
+      "webhookId": "9c281a0c-2d80-4016-ae15-68159ade3b25"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://TWENTY_INSTANCE/rest/itAssets/{{ $('Webhook').item.json.body.asset_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"cpuModel\": {{ JSON.stringify($json.systemInfo.model) }},\n  \"cpuCores\": {{ $json.systemInfo.cores }},\n  \"cpuArchitecture\":\"N/A\",\n  \"clockSpeed\": {{$json.clock_speed}},\n  \"memory\": {{ JSON.stringify($json.systemInfo.physmem) }},\n  \"os\":   {{ JSON.stringify(\"TrueNAS \" + $json.product_type) }},\n  \"osVersion\": {{ JSON.stringify($json.systemInfo.version) }},\n  \"storage\": {{ JSON.stringify($json.storage_gb) }},\n  \"ipAddresses\": {{ JSON.stringify($json.ip_addresses) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        992
+      ],
+      "id": "a4d642fe-cb43-4dd3-b49d-44a51147c8b4",
+      "name": "Update IT Asset",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "API account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# System Info\n## TrueNAS\n\nUses the `midclt` TrueNAS CLI utility.\nConnect with a user with READONLY admin rights\n\n- CPU info\n- Memory details\n- OS information\n- Total storage\n- IP addresses",
+        "height": 320,
+        "width": 432,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2352,
+        576
+      ],
+      "typeVersion": 1,
+      "id": "f3cba746-6ee3-4e80-a130-7bcad95d13f8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fdb72d15-c553-48f2-b4e1-515611593590",
+              "leftValue": "={{ $json.body.credential_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1968,
+        992
+      ],
+      "id": "92b9bae3-16fd-4444-be97-ba8527a4dde5",
+      "name": "Credential exists?"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -624,
+        992
+      ],
+      "id": "e05f07fe-1879-4474-bd19-91a7b026fbb7",
+      "name": "Final Merge"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.body.credential_id }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"midclt call system.info\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -768,\n        -496\n      ],\n      \"id\": \"b86f38fb-2191-41ca-a74c-04e3b85c610a\",\n      \"name\": \"Get System Info\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Get System Info\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -1744,
+        608
+      ],
+      "id": "a1a391de-8c99-4b4f-bd41-efa5ec863374",
+      "name": "Get system info"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.body.credential_id }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"midclt call system.product_type\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -544,\n        -304\n      ],\n      \"id\": \"df1d9137-6a9a-4cd7-995f-1c1b13b0795a\",\n      \"name\": \"Get System Info1\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Get System Info1\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        800
+      ],
+      "id": "a03530d1-d4a0-4481-b2fd-b5f7599c551d",
+      "name": "Get OS details"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.body.credential_id }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"midclt call network.general.summary\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -768,\n        80\n      ],\n      \"id\": \"da1c130f-5546-4904-ae12-dc617186ba56\",\n      \"name\": \"Get Pool Info1\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Get Pool Info1\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -1744,
+        1184
+      ],
+      "id": "3ecde364-fe07-4742-aae2-bf0dafe98d7c",
+      "name": "Get IPs"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.body.credential_id }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"midclt call pool.query\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -320,\n        -112\n      ],\n      \"id\": \"d2cd9031-1f78-4654-be9d-034fd7a382d0\",\n      \"name\": \"Get Pool Info\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Get Pool Info\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -1296,
+        992
+      ],
+      "id": "f627bdd3-8c9b-4ccb-b757-af234db8e4ea",
+      "name": "Get pool info"
+    },
+    {
+      "parameters": {
+        "credentialsId": "={{ $json.body.credential_id }}",
+        "nodeJson": "={\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"authentication\": \"privateKey\",\n        \"command\": \"cat /proc/cpuinfo\"\n      },\n      \"type\": \"n8n-nodes-base.ssh\",\n      \"typeVersion\": 1,\n      \"position\": [\n        -544,\n        272\n      ],\n      \"id\": \"abcf68f9-cfa5-4129-b383-53bba28eb653\",\n      \"name\": \"Execute a command\",\n      \"credentials\": {\n        \"sshPrivateKey\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    }\n  ],\n  \"connections\": {\n    \"Execute a command\": {\n      \"main\": [\n        []\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"templateCredsSetupCompleted\": true,\n    \"instanceId\": \"089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb\"\n  }\n}"
+      },
+      "type": "n8n-nodes-run-node-with-credentials-x.runNodeWithCredentialsX",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        1376
+      ],
+      "id": "d37f8cb2-52e8-438c-a76a-da3d1d2382a6",
+      "name": "Get CPU info"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1072,
+        704
+      ],
+      "id": "2abea5b7-754d-48a4-8a49-799b0bd95327",
+      "name": "System + OS merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1072,
+        1280
+      ],
+      "id": "3f480067-5aeb-4409-b004-183cd48cd470",
+      "name": "IP and CPU  merge"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -848,
+        1184
+      ],
+      "id": "1e01b828-cc46-49d9-88c1-827203f24ca3",
+      "name": "Mergenta"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.stdout;\nconst cleaned = text.replace(/\\\\n(?=[^\"]*\"(?:[^\"]*\"[^\"]*\")*[^\"]*$)/g, '\\\\\\\\n');\nconst parsed = JSON.parse(cleaned);\nreturn [{systemInfo: parsed}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1520,
+        1184
+      ],
+      "id": "392bc1c9-9fe8-47b4-b533-249b11e3dbbc",
+      "name": "Parse IP info"
+    },
+    {
+      "parameters": {
+        "jsCode": "// $json.stdout contains the raw /proc/cpuinfo string\nconst cpuInfo = $json.stdout;\n\n// Match all lines with \"cpu MHz\" and extract the number\nconst matches = cpuInfo.match(/cpu MHz\\s*:\\s*([\\d.]+)/g);\n\n// If we have matches, pick the first one and convert to GHz (optional)\nlet cpuClock = \"Unknown\";\nif (matches && matches.length > 0) {\n    // Extract the number only\n    const mhz = parseFloat(matches[0].split(\":\")[1].trim());\n    cpuClock = mhz;\n}\n\n// Return as the desired object\nreturn [\n    {\n        clock_speed: cpuClock\n    }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        1376
+      ],
+      "id": "d687c597-98b2-47e7-a83e-72148cd4eacb",
+      "name": "Build clock speed object"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const ips = item.json?.systemInfo?.ips || {};\n  const ipList = [];\n\n  for (const [iface, data] of Object.entries(ips)) {\n    if (data.IPV4 && data.IPV4.length > 0) {\n      ipList.push(`${iface}: ${data.IPV4[0]}`);\n    }\n  }\n\n  return { json: { ip_addresses: ipList.join(', ') } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        1184
+      ],
+      "id": "1537a8ce-3135-4302-bc2b-2adaa6455123",
+      "name": "Build IP object"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.stdout;\nconst cleaned = text.replace(/\\\\n(?=[^\"]*\"(?:[^\"]*\"[^\"]*\")*[^\"]*$)/g, '\\\\\\\\n');\nconst parsed = JSON.parse(cleaned);\nreturn [{systemInfo: parsed}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1520,
+        608
+      ],
+      "id": "bcdc645a-ad2c-46f9-bbfa-e8a43e67f69e",
+      "name": "Parse system info"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: items[0].json is your object\nreturn items.map(item => {\n  const data = { ...item.json }; // shallow copy\n\n  if (data.systemInfo && data.systemInfo.physmem != null) {\n    // Convert bytes to nearest GB\n    const gb = Math.round(data.systemInfo.physmem / 1e9);\n    data.systemInfo.physmem = gb + 'GB.';\n  }\n\n  return { json: data };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        608
+      ],
+      "id": "1022ca26-5102-453e-8bb9-8c39130f95e3",
+      "name": "Build memory object"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the stdout string into an array of pool objects\nconst pools = JSON.parse($json.stdout);\n\nlet totalBytes = 0;\n\n// Sum the size of each pool\nfor (const pool of pools) {\n  if (pool.size) {\n    totalBytes += Number(pool.size);\n  }\n}\n\n// Convert to retail-style GB\nconst totalGB = Math.round(totalBytes / 1_000_000_000);\n\nreturn [\n  {\n    storage_gb: totalGB + \"GB.\"\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        992
+      ],
+      "id": "d954cfcf-75dd-42ec-a3a9-f987438a56a3",
+      "name": "Build aggregated storage object"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $input.first().json.stdout;\nreturn [{product_type: text}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1296,
+        800
+      ],
+      "id": "09675c07-4e7f-445e-9fbf-113493398a45",
+      "name": "Build product type object"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Credential exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update IT Asset": {
+      "main": [
+        []
+      ]
+    },
+    "Credential exists?": {
+      "main": [
+        [
+          {
+            "node": "Get system info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get OS details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get pool info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get IPs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get CPU info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Final Merge": {
+      "main": [
+        [
+          {
+            "node": "Update IT Asset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get system info": {
+      "main": [
+        [
+          {
+            "node": "Parse system info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get OS details": {
+      "main": [
+        [
+          {
+            "node": "Build product type object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get IPs": {
+      "main": [
+        [
+          {
+            "node": "Parse IP info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get pool info": {
+      "main": [
+        [
+          {
+            "node": "Build aggregated storage object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get CPU info": {
+      "main": [
+        [
+          {
+            "node": "Build clock speed object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "System + OS merge": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IP and CPU  merge": {
+      "main": [
+        [
+          {
+            "node": "Mergenta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Mergenta": {
+      "main": [
+        [
+          {
+            "node": "Final Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Parse IP info": {
+      "main": [
+        [
+          {
+            "node": "Build IP object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build clock speed object": {
+      "main": [
+        [
+          {
+            "node": "IP and CPU  merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Build IP object": {
+      "main": [
+        [
+          {
+            "node": "IP and CPU  merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse system info": {
+      "main": [
+        [
+          {
+            "node": "Build memory object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build memory object": {
+      "main": [
+        [
+          {
+            "node": "System + OS merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build aggregated storage object": {
+      "main": [
+        [
+          {
+            "node": "Mergenta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build product type object": {
+      "main": [
+        [
+          {
+            "node": "System + OS merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2cfa4d24-c5c1-460f-b465-99aa16e2765f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "089593b0375f52cffd2e682594e43cdd96459883230a04bef809490471c267bb"
+  },
+  "id": "5XjDpqUjZR00Ly7G",
+  "tags": []
+}

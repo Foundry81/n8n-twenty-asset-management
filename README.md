@@ -5,7 +5,7 @@ _A collection of n8n workflows to pull system information from Linux, Synology, 
 Designed for homelab enthusiasts, IT pros, or anyone who wants to see how SSH, JSON parsing, and modular workflows can work together. Feel free to pick them apart, remix them, or use them as inspiration.
 
 ## Main Workflows
-These are the “big entry points” — each is self-contained, focused on a specific platform to keep things simple and avoid messy conditionals.
+These are the “big entry points” - each is self-contained, focused on a specific platform to keep things simple and avoid messy conditionals.
 
 | Workflow | Purpose |
 | ---------|-------- |
@@ -16,7 +16,7 @@ These are the “big entry points” — each is self-contained, focused on a sp
 Each main workflow assumes SSH access with certificate-based authentication. For TrueNAS, use a read-only admin account.
 
 ## Sub-Workflows
-Sub-workflows break out specific tasks — you can reuse them in multiple main workflows or as standalone experiments.
+Sub-workflows break out specific tasks - you can reuse them in multiple main workflows or as standalone experiments.
 
 ### Synology-Specific
 | Workflow | Purpose |
@@ -38,25 +38,25 @@ Sub-workflows break out specific tasks — you can reuse them in multiple main w
 **Note**: Memory and storage sub-workflows have slightly different approaches for Linux vs Synology, reflecting platform differences.
 
 ## Usage Notes
-1. **SSH Access**
--- Certificate-based authentication is assumed for all workflows.
--- Minimal required permissions: read-only for system info, read-only admin for TrueNAS.
-2. **Twenty CRM Integration**
--- If using these workflows in Twenty CRM, you’ll need a working instance, API URL, and API key.
--- That said, the workflows are fully usable as standalone examples to learn from and adapt.
-3. **Learning & Exploration**
--- Each workflow is modular. Pull one apart to see how SSH calls, JSON parsing, and JS nodes interact.
--- The Synology workflows show how to parse less-structured outputs (/proc/partitions, /etc.defaults/VERSION).
--- Linux workflows show a more structured approach using JSON outputs (ip -j addr, lsblk -J).
-4. **Tips**
--- Ignore interfaces like `lo`, `docker`, `br-`, `veth`, `wg`, `tailscale` when parsing IPs.
--- Memory rounding assumes standard retail RAM sizes: 4, 8, 16, 32, 64… GB.
--- Storage parsing distinguishes between disks and partitions for clarity.
+### SSH Access
+- Certificate-based authentication is assumed for all workflows.
+- Minimal required permissions: read-only for system info, read-only admin for TrueNAS.
+### **Twenty CRM Integration**
+- If using these workflows in Twenty CRM, you’ll need a working instance, API URL, and API key.
+- That said, the workflows are fully usable as standalone examples to learn from and adapt.
+### **Learning & Exploration**
+- Each workflow is modular. Pull one apart to see how SSH calls, JSON parsing, and JS nodes interact.
+- The Synology workflows show how to parse less-structured outputs (/proc/partitions, /etc.defaults/VERSION).
+- Linux workflows show a more structured approach using JSON outputs (ip -j addr, lsblk -J).
+### **Tips**
+- Ignore interfaces like `lo`, `docker`, `br-`, `veth`, `wg`, `tailscale` when parsing IPs.
+- Memory rounding assumes standard retail RAM sizes: 4, 8, 16, 32, 64… GB.
+- Storage parsing distinguishes between disks and partitions for clarity.
 
 ## Why This is Useful
 - Learn modular workflow design without overly complex branching.
 - See how to extract system info over SSH safely and reliably.
-- Explore JS nodes for parsing and formatting output — easily adaptable to your own needs.
+- Explore JS nodes for parsing and formatting output - easily adaptable to your own needs.
 - Great starting point for home labs, monitoring scripts, or custom CRM integrations.
 
 ## Recommended Approach

@@ -1,7 +1,7 @@
 # Twenty CRM/n8n IT Asset System Info Workflows
 _A collection of n8n workflows to pull system information from Linux, Synology, and TrueNAS devices._
 ![n8n screenshot](./readme-assets/screenshot-debian.png)
-
+![Twenty screenshot](./readme-assets/screenshot-twenty-it_assets.png)
 Designed for homelab enthusiasts, IT pros, or anyone who wants to see how SSH, JSON parsing, and modular workflows can work together. Feel free to pick them apart, remix them, or use them as inspiration.
 
 ## Main Workflows
